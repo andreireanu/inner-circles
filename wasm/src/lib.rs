@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                            4
+// Endpoints:                            6
 // Async Callback:                       1
-// Total number of exported functions:   6
+// Total number of exported functions:   8
 
 #![no_std]
 #![feature(alloc_error_handler, lang_items)]
@@ -20,6 +20,8 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         issueFungibleToken
         issueSemiFungibleToken
+        setLocalRoles
+        createSft
         getUserToken
         getUserSft
         callBack

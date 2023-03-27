@@ -5,6 +5,11 @@ multiversx_sc::derive_imports!();
 
 mod storage;
 
+#[derive(TypeAbi, TopEncode, TopDecode)]
+pub struct ExampleAttributes {
+    pub creation_timestamp: u64,
+}
+
 #[multiversx_sc::contract]
 pub trait InnerCircles: crate::storage::StorageModule {
     #[init]
@@ -68,7 +73,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     ////////////////
-    // Issue SFT
+    // Issue semi fungible token
     #[payable("EGLD")]
     #[endpoint(issueSemiFungibleToken)]
     fn issue_semi_fungible_token(
@@ -118,5 +123,39 @@ pub trait InnerCircles: crate::storage::StorageModule {
                 }
             }
         }
+    }
+
+    ////////////////
+    // Set minting roles
+    #[payable("EGLD")]
+    #[endpoint(setLocalRoles)]
+    fn set_local_roles(&self) {
+        let caller = self.blockchain().get_caller();
+        let sft_token_id = &self.user_sft(&caller).get();
+        let sc_address = self.blockchain().get_sc_address();
+        let roles = [
+            EsdtLocalRole::NftCreate,
+            EsdtLocalRole::NftAddQuantity,
+            EsdtLocalRole::NftBurn,
+        ];
+        self.send()
+            .esdt_system_sc_proxy()
+            .set_special_roles(&sc_address, sft_token_id, roles[..].iter().cloned())
+            .async_call()
+            .call_and_exit()
+    }
+
+    #[endpoint(createSft)]
+    fn create_sft_with_attributes(&self, name: ManagedBuffer) {
+        let caller = self.blockchain().get_caller();
+        let sft_token_id = &self.user_sft(&caller).get();
+
+        let attributes = ExampleAttributes {
+            creation_timestamp: self.blockchain().get_block_timestamp(),
+        };
+
+        let _ =
+            self.send()
+                .esdt_nft_create_compact(&sft_token_id, &BigUint::from(10u64), &attributes);
     }
 }

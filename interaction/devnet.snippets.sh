@@ -69,6 +69,30 @@ issueSemiFungibleToken() {
     --arguments "str:"$TKN_NAME "str:"$TKN_TICKER  
 } 
 
+setLocalRoles() {
+    erdpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=70000000 \
+    --function="setLocalRoles"
+} 
+
+SFT="DUMMY"
+
+createSft() {
+    erdpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=70000000 \
+    --function="createSft" \
+    --arguments "str:"$SFT_NAME 
+} 
  
 
 ######## QUERRIES

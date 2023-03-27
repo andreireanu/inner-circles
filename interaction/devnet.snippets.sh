@@ -81,6 +81,7 @@ setLocalRoles() {
 } 
 
 SFT="DUMMY"
+URI="https://ipfs.io/ipfs/QmVATYyiL7r9RRbZAzqVassCt58M5JNji2CrVjaTQzk5Bm?filename=Band2"
 
 createSft() {
     erdpy --verbose contract call ${CONTRACT_ADDRESS} \
@@ -91,7 +92,7 @@ createSft() {
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=70000000 \
     --function="createSft" \
-    --arguments "str:"$SFT_NAME 
+    --arguments "str:"$SFT_NAME "str:"$URI
 } 
  
 

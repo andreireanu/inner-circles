@@ -146,7 +146,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     #[endpoint(createSft)]
-    fn create_sft_with_attributes(&self, name: ManagedBuffer) {
+    fn create_sft_with_attributes(&self, name: ManagedBuffer, uri: ManagedBuffer) {
         let caller = self.blockchain().get_caller();
         let sft_token_id = &self.user_sft(&caller).get();
 
@@ -154,8 +154,24 @@ pub trait InnerCircles: crate::storage::StorageModule {
             creation_timestamp: self.blockchain().get_block_timestamp(),
         };
 
-        let _ =
-            self.send()
-                .esdt_nft_create_compact(&sft_token_id, &BigUint::from(10u64), &attributes);
+        let mut serialized_attributes = ManagedBuffer::new();
+        if let core::result::Result::Err(err) = attributes.top_encode(&mut serialized_attributes) {
+            sc_panic!("Attributes encode error: {}", err.message_bytes());
+        }
+
+        let attributes_sha256 = self.crypto().sha256(&serialized_attributes);
+        let attributes_hash = attributes_sha256.as_managed_buffer();
+
+        let uris = ManagedVec::from_single_item(uri);
+
+        let _ = self.send().esdt_nft_create(
+            &sft_token_id,
+            &BigUint::from(20u64),
+            &name,
+            &BigUint::from(0u64),
+            attributes_hash,
+            &attributes,
+            &uris,
+        );
     }
 }

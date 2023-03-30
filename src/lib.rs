@@ -6,6 +6,11 @@ multiversx_sc::derive_imports!();
 mod storage;
 
 #[derive(TypeAbi, TopEncode, TopDecode)]
+pub struct ExampleAttributes2<M: ManagedTypeApi> {
+    pub name: ManagedBuffer<M>,
+}
+
+#[derive(TypeAbi, TopEncode, TopDecode)]
 pub struct ExampleAttributes {
     pub creation_timestamp: u64,
 }
@@ -113,6 +118,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
         match result {
             ManagedAsyncCallResult::Ok(token_identifier) => {
                 self.user_sft(caller).set(&token_identifier);
+                self.set_local_roles(&token_identifier);
             }
             ManagedAsyncCallResult::Err(_message) => {
                 // return issue cost to the caller
@@ -127,11 +133,9 @@ pub trait InnerCircles: crate::storage::StorageModule {
 
     ////////////////
     // Set minting roles
-    #[payable("EGLD")]
+    #[inline]
     #[endpoint(setLocalRoles)]
-    fn set_local_roles(&self) {
-        let caller = self.blockchain().get_caller();
-        let sft_token_id = &self.user_sft(&caller).get();
+    fn set_local_roles(&self, token_identifier: &TokenIdentifier) {
         let sc_address = self.blockchain().get_sc_address();
         let roles = [
             EsdtLocalRole::NftCreate,
@@ -140,18 +144,28 @@ pub trait InnerCircles: crate::storage::StorageModule {
         ];
         self.send()
             .esdt_system_sc_proxy()
-            .set_special_roles(&sc_address, sft_token_id, roles[..].iter().cloned())
+            .set_special_roles(&sc_address, token_identifier, roles[..].iter().cloned())
             .async_call()
             .call_and_exit()
     }
 
     #[endpoint(createSft)]
-    fn create_sft_with_attributes(&self, name: ManagedBuffer, uri: ManagedBuffer) {
+    #[allow(clippy::too_many_arguments)]
+    fn create_sft_with_attributes(
+        &self,
+        name: ManagedBuffer,
+        uri: ManagedBuffer,
+        attribute_new: ManagedBuffer,
+    ) {
         let caller = self.blockchain().get_caller();
         let sft_token_id = &self.user_sft(&caller).get();
 
-        let attributes = ExampleAttributes {
-            creation_timestamp: self.blockchain().get_block_timestamp(),
+        // let attributes = ExampleAttributes {
+        //     creation_timestamp: self.blockchain().get_block_timestamp(),
+        // };
+
+        let attributes = ExampleAttributes2 {
+            name: attribute_new,
         };
 
         let mut serialized_attributes = ManagedBuffer::new();

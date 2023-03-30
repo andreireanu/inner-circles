@@ -39,8 +39,8 @@ upgrade() {
 
 ######## CONTRACT CALLS
 
-TKN_NAME="Band2"
-TKN_TICKER="BND2"
+TKN_NAME="Band6"
+TKN_TICKER="BND6"
 NR=1000
 
 issueFungibleToken() {
@@ -64,24 +64,15 @@ issueSemiFungibleToken() {
     --chain=${CHAIN_ID} \
     --recall-nonce \
     --pem="inner-circles/wallets/alice.pem" \
-    --gas-limit=70000000 \
+    --gas-limit=170000000 \
     --function="issueSemiFungibleToken" \
     --arguments "str:"$TKN_NAME "str:"$TKN_TICKER  
 } 
 
-setLocalRoles() {
-    erdpy --verbose contract call ${CONTRACT_ADDRESS} \
-    --send \
-    --proxy=${PROXY} \
-    --chain=${CHAIN_ID} \
-    --recall-nonce \
-    --pem="inner-circles/wallets/alice.pem" \
-    --gas-limit=70000000 \
-    --function="setLocalRoles"
-} 
-
 SFT="DUMMY"
-URI="https://ipfs.io/ipfs/QmVATYyiL7r9RRbZAzqVassCt58M5JNji2CrVjaTQzk5Bm?filename=Band2"
+URI="https://ipfs.io/ipfs/QmVATYyiL7r9RRbZAzqVassCt58M5JNji2CrVjaTQzk5Bm"
+ATTR="AttributeName"
+
 
 createSft() {
     erdpy --verbose contract call ${CONTRACT_ADDRESS} \
@@ -90,9 +81,9 @@ createSft() {
     --chain=${CHAIN_ID} \
     --recall-nonce \
     --pem="inner-circles/wallets/alice.pem" \
-    --gas-limit=70000000 \
+    --gas-limit=5500000 \
     --function="createSft" \
-    --arguments "str:"$SFT_NAME "str:"$URI
+    --arguments "str:"$SFT_NAME "str:"$URI "str:"$ATTR 
 } 
  
 

@@ -118,7 +118,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
         match result {
             ManagedAsyncCallResult::Ok(token_identifier) => {
                 self.user_sft(caller).set(&token_identifier);
-                self.set_local_roles(&token_identifier);
+                self.set_local_roles_sft(&token_identifier);
             }
             ManagedAsyncCallResult::Err(_message) => {
                 // return issue cost to the caller
@@ -134,8 +134,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
     ////////////////
     // Set minting roles
     #[inline]
-    #[endpoint(setLocalRoles)]
-    fn set_local_roles(&self, token_identifier: &TokenIdentifier) {
+    fn set_local_roles_sft(&self, sft_token: &TokenIdentifier) {
         let sc_address = self.blockchain().get_sc_address();
         let roles = [
             EsdtLocalRole::NftCreate,
@@ -144,7 +143,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
         ];
         self.send()
             .esdt_system_sc_proxy()
-            .set_special_roles(&sc_address, token_identifier, roles[..].iter().cloned())
+            .set_special_roles(&sc_address, sft_token, roles[..].iter().cloned())
             .async_call()
             .call_and_exit()
     }
@@ -159,10 +158,6 @@ pub trait InnerCircles: crate::storage::StorageModule {
     ) {
         let caller = self.blockchain().get_caller();
         let sft_token_id = &self.user_sft(&caller).get();
-
-        // let attributes = ExampleAttributes {
-        //     creation_timestamp: self.blockchain().get_block_timestamp(),
-        // };
 
         let attributes = ExampleAttributes2 {
             name: attribute_new,
@@ -180,6 +175,113 @@ pub trait InnerCircles: crate::storage::StorageModule {
 
         let _ = self.send().esdt_nft_create(
             &sft_token_id,
+            &BigUint::from(20u64),
+            &name,
+            &BigUint::from(0u64),
+            attributes_hash,
+            &attributes,
+            &uris,
+        );
+    }
+
+    ////////////////
+    // Issue non fungible token
+    #[payable("EGLD")]
+    #[endpoint(issueNonFungibleToken)]
+    fn issue_non_fungible_token(
+        &self,
+        token_display_name: &ManagedBuffer,
+        token_ticker: &ManagedBuffer,
+    ) {
+        let issue_cost = self.call_value().egld_value();
+        let caller = self.blockchain().get_caller();
+        self.send()
+            .esdt_system_sc_proxy()
+            .issue_non_fungible(
+                issue_cost,
+                &token_display_name,
+                &token_ticker,
+                NonFungibleTokenProperties {
+                    can_freeze: true,
+                    can_wipe: true,
+                    can_pause: true,
+                    can_transfer_create_role: true,
+                    can_change_owner: true,
+                    can_upgrade: true,
+                    can_add_special_roles: true,
+                },
+            )
+            .async_call()
+            .with_callback(self.callbacks().nft_issue_callback(&caller))
+            .call_and_exit()
+    }
+
+    #[callback]
+    fn nft_issue_callback(
+        &self,
+        caller: &ManagedAddress,
+        #[call_result] result: ManagedAsyncCallResult<TokenIdentifier>,
+    ) {
+        match result {
+            ManagedAsyncCallResult::Ok(token_identifier) => {
+                self.user_nft(caller).set(&token_identifier);
+                self.set_local_roles_nft(&token_identifier);
+            }
+            ManagedAsyncCallResult::Err(_message) => {
+                // return issue cost to the caller
+                let (token_identifier, returned_tokens) =
+                    self.call_value().egld_or_single_fungible_esdt();
+                if token_identifier.is_egld() && returned_tokens > 0 {
+                    self.send().direct_egld(caller, &returned_tokens);
+                }
+            }
+        }
+    }
+
+    ////////////////
+    // Set minting roles
+    #[inline]
+    fn set_local_roles_nft(&self, nft_token: &TokenIdentifier) {
+        let sc_address = self.blockchain().get_sc_address();
+        let roles = [
+            EsdtLocalRole::NftCreate,
+            EsdtLocalRole::NftBurn,
+            EsdtLocalRole::NftAddUri,
+            EsdtLocalRole::NftUpdateAttributes,
+        ];
+        self.send()
+            .esdt_system_sc_proxy()
+            .set_special_roles(&sc_address, nft_token, roles[..].iter().cloned())
+            .async_call()
+            .call_and_exit()
+    }
+
+    #[endpoint(createNft)]
+    fn create_nft_with_attributes(
+        &self,
+        name: ManagedBuffer,
+        uri: ManagedBuffer,
+        attribute_new: ManagedBuffer,
+    ) {
+        let caller = self.blockchain().get_caller();
+        let nft_token_id = &self.user_nft(&caller).get();
+
+        let attributes = ExampleAttributes2 {
+            name: attribute_new,
+        };
+
+        let mut serialized_attributes = ManagedBuffer::new();
+        if let core::result::Result::Err(err) = attributes.top_encode(&mut serialized_attributes) {
+            sc_panic!("Attributes encode error: {}", err.message_bytes());
+        }
+
+        let attributes_sha256 = self.crypto().sha256(&serialized_attributes);
+        let attributes_hash = attributes_sha256.as_managed_buffer();
+
+        let uris = ManagedVec::from_single_item(uri);
+
+        let _ = self.send().esdt_nft_create(
+            &nft_token_id,
             &BigUint::from(20u64),
             &name,
             &BigUint::from(0u64),

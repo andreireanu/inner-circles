@@ -10,4 +10,8 @@ pub trait StorageModule {
     #[view(getUserSft)]
     #[storage_mapper("userSft")]
     fn user_sft(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
+
+    #[view(getUserNft)]
+    #[storage_mapper("userNft")]
+    fn user_nft(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
 }

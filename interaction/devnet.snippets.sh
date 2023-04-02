@@ -2,7 +2,7 @@ PROXY=https://devnet-gateway.elrond.com
 CHAIN_ID="D"
 WALLET_ALICE="${PWD}/inner-circles/wallets/alice.pem"
 WALLET_BOB="${PWD}/inner-circles/wallets/bob.pem"
-CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqe7zywk5vga7jme2zpnt5hcz86za6gvf37wpqrx2wu3"
+CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqy50k2gdfhlvg9keky2jeh45td3kt87t37wpq4qnas0"
 ALICE_ADDRESS="erd1aqd2v3hsrpgpcscls6a6al35uc3vqjjmskj6vnvl0k93e73x7wpqtpctqw"
 ALICE_ADDRESS_HEX="$(mxpy wallet bech32 --decode ${ALICE_ADDRESS})"
 ALICE_ADDRESS_HEXX="0x$(mxpy wallet bech32 --decode ${ALICE_ADDRESS})"
@@ -85,6 +85,47 @@ createSft() {
     --function="createSft" \
     --arguments "str:"$SFT_NAME "str:"$URI "str:"$ATTR 
 } 
+
+TOKEN_AMOUNT=1
+CLAIM_TOKEN=BND2-90614b
+CLAIM_TOKEN_HEX="$(echo -n ${CLAIM_TOKEN} | xxd -p -u | tr -d '\n')"
+
+BAND_SFT=str:BND6-5dc391
+
+claimToken() {
+    erdpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --pem=${WALLET_ALICE} \
+    --recall-nonce \
+    --gas-limit=10000000 \
+    --function="claimToken" \
+    --arguments $TOKEN_AMOUNT "str:"$CLAIM_TOKEN  
+}
+
+AMOUNT=1
+AMOUNT_HEX=$(python3 ${PWD}/inner-circles/interaction/to_hex.py ${AMOUNT})
+
+SFT_NONCE=1
+SFT_NONCE_HEX=$(python3 ${PWD}/inner-circles/interaction/to_hex.py ${SFT_NONCE})
+ 
+BUY_FUNCTION="buySft"
+BUY_FUNCTION_HEX="$(echo -n ${BUY_FUNCTION} | xxd -p -u | tr -d '\n')"
+
+buySft() {
+    erdpy --verbose tx new \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --pem=${WALLET_ALICE} \
+    --recall-nonce \
+    --gas-limit=10000000 \
+    --receiver=${CONTRACT_ADDRESS} \
+    --data="ESDTTransfer@${CLAIM_TOKEN_HEX}@${AMOUNT_HEX}@${BUY_FUNCTION_HEX}@${ALICE_ADDRESS_HEX}@${SFT_NONCE_HEX}"  
+}
+
+
 
 issueNonFungibleToken() {
     mxpy --verbose contract call ${CONTRACT_ADDRESS} \

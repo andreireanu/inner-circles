@@ -78,8 +78,17 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     ////////////////
+    // Claim fungible token
+    #[endpoint(claimToken)]
+    fn claim_token(&self, amount: &BigUint, token: &TokenIdentifier) {
+        let caller = self.blockchain().get_caller();
+        self.send().direct_esdt(&caller, &token, 0, amount);
+    }
+
+
+
+    ////////////////
     // Issue semi fungible token
-    #[payable("EGLD")]
     #[endpoint(issueSemiFungibleToken)]
     fn issue_semi_fungible_token(
         &self,
@@ -288,6 +297,33 @@ pub trait InnerCircles: crate::storage::StorageModule {
             attributes_hash,
             &attributes,
             &uris,
+        );
+    }
+
+    ////////////////
+    // Buy
+    #[endpoint(buySft)]
+    #[payable("*")]
+    fn buy_sft(&self, address: ManagedAddress, token_sft_nonce: u64) {
+        let caller = self.blockchain().get_caller();
+        let payment = self.call_value().single_esdt();
+        require!(
+            self.user_token(&address).get() == payment.token_identifier,
+            "Wrong token"
+        );
+        let user_sft = self.user_sft(&address);
+        require!(!user_sft.is_empty(), "Empty");
+        let user_nft_token = user_sft.get();
+        self.send().esdt_local_burn(
+            &payment.token_identifier,
+            payment.token_nonce,
+            &payment.amount,
+        );
+        self.send().direct_esdt(
+            &caller,
+            &user_nft_token,
+            token_sft_nonce,
+            &BigUint::from(1u64),
         );
     }
 }

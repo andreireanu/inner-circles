@@ -58,15 +58,44 @@ issueFungibleToken() {
     --arguments "str:"$TKN_NAME "str:"$TKN_TICKER $NR 
 } 
 
- 
+issueSemiFungibleToken() {
+    erdpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --value=50000000000000000 \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=140000000 \
+    --function="issueSemiFungibleToken" \
+    --arguments "str:"$TKN_NAME "str:"$TKN_TICKER  
+}  
  
 ######## QUERRIES
 
-getUserToken() {
+getCreatorToken() {
     mxpy --verbose contract query ${CONTRACT_ADDRESS} \
     --proxy=${PROXY} \
     --function="getCreatorToken" \
     --arguments ${ALICE_ADDRESS_HEXX}
     }  
 
+getCreatorSft() {
+    mxpy --verbose contract query ${CONTRACT_ADDRESS} \
+    --proxy=${PROXY} \
+    --function="getCreatorSft" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+    }  
  
+
+clear() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=6000000 \
+    --function="clear" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+} 

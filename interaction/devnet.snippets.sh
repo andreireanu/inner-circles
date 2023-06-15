@@ -58,7 +58,7 @@ issueFungibleToken() {
     --arguments "str:"$TKN_NAME "str:"$TKN_TICKER $NR 
 } 
 
-issueSemiFungibleToken() {
+issueNonFungibleToken() {
     erdpy --verbose contract call ${CONTRACT_ADDRESS} \
     --send \
     --value=50000000000000000 \
@@ -67,9 +67,26 @@ issueSemiFungibleToken() {
     --recall-nonce \
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=140000000 \
-    --function="issueSemiFungibleToken" \
+    --function="issueNonFungibleToken" \
     --arguments "str:"$TKN_NAME "str:"$TKN_TICKER  
 }  
+
+NFT_NAME="Campaign1"
+URI="ipfs://bafybeihbh6yup53quguma2qze3o7v6m6cef3cvu3qlap3jvc5lzymnmo7i"
+NFTS_NR=10
+ATTR="Band:Best"
+
+createNft() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=5500000 \
+    --function="createNft" \
+    --arguments "str:"$NFT_NAME $NFTS_NR "str:"$URI "str:"$ATTR 
+} 
  
 ######## QUERRIES
 
@@ -80,15 +97,15 @@ getCreatorToken() {
     --arguments ${ALICE_ADDRESS_HEXX}
     }  
 
-getCreatorSft() {
+getCreatorNft() {
     mxpy --verbose contract query ${CONTRACT_ADDRESS} \
     --proxy=${PROXY} \
-    --function="getCreatorSft" \
+    --function="getCreatorNft" \
     --arguments ${ALICE_ADDRESS_HEXX}
     }  
  
 
-clear() {
+clearToken() {
     mxpy --verbose contract call ${CONTRACT_ADDRESS} \
     --send \
     --proxy=${PROXY} \
@@ -96,6 +113,18 @@ clear() {
     --recall-nonce \
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=6000000 \
-    --function="clear" \
+    --function="clearToken" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+} 
+
+clearNft() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=6000000 \
+    --function="clearNft" \
     --arguments ${ALICE_ADDRESS_HEXX}
 } 

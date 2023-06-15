@@ -3,7 +3,12 @@ multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
 mod storage;
- 
+
+#[derive(TypeAbi, TopEncode, TopDecode)]
+pub struct NftAttributes<M: ManagedTypeApi> {
+    pub attribute1: ManagedBuffer<M>,
+}
+
 #[multiversx_sc::contract]
 pub trait InnerCircles: crate::storage::StorageModule {
     #[init]
@@ -55,7 +60,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
         let (token_identifier, returned_tokens) = self.call_value().egld_or_single_fungible_esdt();
         match result {
             ManagedAsyncCallResult::Ok(()) => {
-                self.creator_token(caller).set(token_identifier.unwrap_esdt());
+                self.creator_token(caller)
+                    .set(token_identifier.unwrap_esdt());
             }
             ManagedAsyncCallResult::Err(_message) => {
                 // return issue cost to the caller
@@ -69,8 +75,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
     ////////////////
     // Issue semi fungible token
     #[payable("EGLD")]
-    #[endpoint(issueSemiFungibleToken)]
-    fn issue_semi_fungible_token(
+    #[endpoint(issueNonFungibleToken)]
+    fn issue_non_fungible_token(
         &self,
         token_display_name: &ManagedBuffer,
         token_ticker: &ManagedBuffer,
@@ -106,7 +112,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
     ) {
         match result {
             ManagedAsyncCallResult::Ok(token_identifier) => {
-                self.creator_sft(caller).set(&token_identifier);
+                self.creator_nft(caller).set(&token_identifier);
                 self.set_local_roles(&token_identifier);
             }
             ManagedAsyncCallResult::Err(_message) => {
@@ -138,17 +144,57 @@ pub trait InnerCircles: crate::storage::StorageModule {
             .call_and_exit()
     }
 
+    ////////////////
+    // Create Nft
+    #[endpoint(createNft)]
+    fn create_nft_with_attributes(
+        &self,
+        name: ManagedBuffer,
+        amount: BigUint,
+        uri: ManagedBuffer,
+        attribute: ManagedBuffer,
+    ) {
+        let caller = self.blockchain().get_caller();
+        let user_nft_mapper = self.creator_nft(&caller);
+        require!(
+            !user_nft_mapper.is_empty(),
+            "User does not have a token issued"
+        );
+
+        let attributes = NftAttributes {
+            attribute1: attribute,
+        };
+
+        let mut serialized_attributes = ManagedBuffer::new();
+        if let core::result::Result::Err(err) = attributes.top_encode(&mut serialized_attributes) {
+            sc_panic!("Attributes encode error: {}", err.message_bytes());
+        }
+
+        let attributes_sha256 = self.crypto().sha256(&serialized_attributes);
+        let attributes_hash = attributes_sha256.as_managed_buffer();
+
+        let uris = ManagedVec::from_single_item(uri);
+
+        let _ = self.send().esdt_nft_create(
+            &user_nft_mapper.get(), // Token name
+            &amount,                // Amount to mint
+            &name,                  // Nft display name
+            &BigUint::from(0u64),   // Royalties
+            attributes_hash,        // Nft Hash
+            &attributes,            // Non formalized attributes
+            &uris,                  // uris
+        );
+    }
+
     #[only_owner]
-    #[endpoint(clear)]
-    fn clear(&self, address: &ManagedAddress) {
+    #[endpoint(clearToken)]
+    fn clear_token(&self, address: &ManagedAddress) {
         self.creator_token(address).clear();
     }
 
-    #[endpoint(getEsdtTokenData)]
-    fn get_esdt_token_data(&self, address: &ManagedAddress) -> EsdtTokenData<Self::Api> {
-        let token = self.creator_token(address).get();
-        let sc_address = self.blockchain().get_sc_address();
-        self.blockchain()
-            .get_esdt_token_data(&sc_address, &token, 0)
+    #[only_owner]
+    #[endpoint(clearNft)]
+    fn clear_nft(&self, address: &ManagedAddress) {
+        self.creator_nft(address).clear();
     }
 }

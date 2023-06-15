@@ -7,7 +7,7 @@ pub trait StorageModule {
     #[storage_mapper("creatorToken")]
     fn creator_token(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
 
-    #[view(getCreatorSft)]
-    #[storage_mapper("creatorSft")]
-    fn creator_sft(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
+    #[view(getCreatorNft)]
+    #[storage_mapper("creatorNft")]
+    fn creator_nft(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
 }

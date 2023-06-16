@@ -87,6 +87,22 @@ createNft() {
     --function="createNft" \
     --arguments "str:"$NFT_NAME $NFTS_NR "str:"$URI "str:"$ATTR 
 } 
+
+CAMPAIGN_NAME="TestCampaign"
+HASHTAG="DIMITRISBATS"
+AMOUNT=10000
+
+createCampaign() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=5500000 \
+    --function="createCampaign" \
+    --arguments "str:"$CAMPAIGN_NAME "str:"$HASHTAG $AMOUNT   
+}
  
 ######## QUERRIES
 
@@ -104,6 +120,12 @@ getCreatorNft() {
     --arguments ${ALICE_ADDRESS_HEXX}
     }  
  
+getCampaigns() {
+    mxpy --verbose contract query ${CONTRACT_ADDRESS} \
+    --proxy=${PROXY} \
+    --function="getCampaigns" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+    }   
 
 clearToken() {
     mxpy --verbose contract call ${CONTRACT_ADDRESS} \

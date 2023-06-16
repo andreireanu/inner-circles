@@ -1,4 +1,6 @@
 #![no_std]
+
+use storage::Campaign;
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
 
@@ -100,12 +102,12 @@ pub trait InnerCircles: crate::storage::StorageModule {
                 },
             )
             .async_call()
-            .with_callback(self.callbacks().sft_issue_callback(&caller))
+            .with_callback(self.callbacks().nft_issue_callback(&caller))
             .call_and_exit()
     }
 
     #[callback]
-    fn sft_issue_callback(
+    fn nft_issue_callback(
         &self,
         caller: &ManagedAddress,
         #[call_result] result: ManagedAsyncCallResult<TokenIdentifier>,
@@ -145,6 +147,20 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     ////////////////
+    // Create Campaign
+    #[endpoint(createCampaign)]
+    fn create_campaign(&self, name: ManagedBuffer, hashtag: ManagedBuffer, amount: BigUint) {
+        let campaign = Campaign {
+            name,
+            hashtag,
+            amount,
+        };
+        let caller = self.blockchain().get_caller();
+        self.campaigns(&caller).push(&campaign);
+    }
+
+
+    ////////////////
     // Create Nft
     #[endpoint(createNft)]
     fn create_nft_with_attributes(
@@ -175,7 +191,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
 
         let uris = ManagedVec::from_single_item(uri);
 
-        let _ = self.send().esdt_nft_create(
+        self.send().esdt_nft_create(
             &user_nft_mapper.get(), // Token name
             &amount,                // Amount to mint
             &name,                  // Nft display name
@@ -185,6 +201,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
             &uris,                  // uris
         );
     }
+
 
     #[only_owner]
     #[endpoint(clearToken)]

@@ -20,5 +20,5 @@ pub trait StorageModule {
 
     #[view(getCampaigns)]
     #[storage_mapper("campaigns")]
-    fn campaigns(&self, user: &ManagedAddress) -> VecMapper<Campaign<Self::Api>>;
+    fn campaigns(&self, user: &ManagedAddress) -> SingleValueMapper<Campaign<Self::Api>>;
 }

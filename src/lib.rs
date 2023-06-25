@@ -1,5 +1,6 @@
 #![no_std]
 
+use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 use storage::Campaign;
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -147,20 +148,6 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     ////////////////
-    // Create Campaign
-    #[endpoint(createCampaign)]
-    fn create_campaign(&self, name: ManagedBuffer, hashtag: ManagedBuffer, amount: BigUint) {
-        let campaign = Campaign {
-            name,
-            hashtag,
-            amount,
-        };
-        let caller = self.blockchain().get_caller();
-        self.campaigns(&caller).push(&campaign);
-    }
-
-
-    ////////////////
     // Create Nft
     #[endpoint(createNft)]
     fn create_nft_with_attributes(
@@ -202,6 +189,59 @@ pub trait InnerCircles: crate::storage::StorageModule {
         );
     }
 
+    ////////////////
+    // Create Campaign
+    #[endpoint(createCampaign)]
+    fn create_campaign(&self, name: ManagedBuffer, hashtag: ManagedBuffer, amount: BigUint) {
+        let campaign = Campaign {
+            name,
+            hashtag,
+            amount,
+        };
+        let caller = self.blockchain().get_caller();
+        self.campaigns(&caller).set(&campaign);
+    }
+
+    ////////////////
+    // Create Campaign
+    #[endpoint(sendCampaignTokens)]
+    fn send_campaign_tokens(
+        &self,
+        hashtag: ManagedBuffer,
+        destinations: MultiValueEncoded<MultiValue2<ManagedAddress, BigUint>>,
+    ) {
+        let caller = self.blockchain().get_caller();
+        require!(
+            self.campaigns(&caller).get().hashtag == hashtag,
+            "Campaign not found"
+        );
+        let payment_token = self.creator_token(&caller);
+        let esdt_payment_token = EgldOrEsdtTokenIdentifier::esdt(payment_token.get());
+        require!(!payment_token.is_empty(), "Creator hasn't created a token");
+
+        let mut amount_to_spend = BigUint::from(0u64);
+
+        for destination in destinations.clone() {
+            let (_address_to_send, amount_to_send) = destination.into_tuple();
+            amount_to_spend += &amount_to_send;
+        }
+
+        let payment_amount = self.blockchain().get_sc_balance(&esdt_payment_token, 0);
+
+        require!(
+            payment_amount > amount_to_spend,
+            "Not enough tokens left in Smart Contract"
+        );
+
+        for destination in destinations {
+            let (address_to_send, amount_to_send) = destination.into_tuple();
+            self.send()
+                .direct(&address_to_send, &esdt_payment_token, 0, &amount_to_send);
+        }
+    }
+
+
+
 
     #[only_owner]
     #[endpoint(clearToken)]
@@ -213,5 +253,11 @@ pub trait InnerCircles: crate::storage::StorageModule {
     #[endpoint(clearNft)]
     fn clear_nft(&self, address: &ManagedAddress) {
         self.creator_nft(address).clear();
+    }
+
+    #[only_owner]
+    #[endpoint(clearCampaign)]
+    fn clear_campaign(&self, address: &ManagedAddress) {
+        self.campaigns(address).clear();
     }
 }

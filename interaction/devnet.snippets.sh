@@ -68,7 +68,7 @@ issueNonFungibleToken() {
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=140000000 \
     --function="issueNonFungibleToken" \
-    --arguments "str:"$TKN_NAME "str:"$TKN_TICKER  
+    --arguments "str:"$ALICE_ADDRESS "str:"$TKN_TICKER  
 }  
 
 NFT_NAME="Campaign1"
@@ -102,6 +102,23 @@ createCampaign() {
     --gas-limit=5500000 \
     --function="createCampaign" \
     --arguments "str:"$CAMPAIGN_NAME "str:"$HASHTAG $AMOUNT   
+}
+
+NR_1=1
+NR_2=2
+NR_3=3
+HASHTAG=carlasdreams
+
+sendCampaignTokens() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=5500000 \
+    --function="sendCampaignTokens" \
+    --arguments "str:"$HASHTAG ${ALICE_ADDRESS_HEXX} $NR_1 ${BOB_ADDRESS_HEXX} $NR_2 ${MARTA_ADDRESS_HEXX} $NR_3    
 }
  
 ######## QUERRIES
@@ -148,5 +165,17 @@ clearNft() {
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=6000000 \
     --function="clearNft" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+} 
+
+clearCampaign() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=6000000 \
+    --function="clearCampaign" \
     --arguments ${ALICE_ADDRESS_HEXX}
 } 

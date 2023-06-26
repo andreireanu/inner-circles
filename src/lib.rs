@@ -1,6 +1,5 @@
 #![no_std]
 
-use multiversx_sc_modules::transfer_role_proxy::PaymentsVec;
 use storage::Campaign;
 multiversx_sc::imports!();
 multiversx_sc::derive_imports!();
@@ -156,6 +155,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
         amount: BigUint,
         uri: ManagedBuffer,
         attribute: ManagedBuffer,
+        price: BigUint,
     ) {
         let caller = self.blockchain().get_caller();
         let user_nft_mapper = self.creator_nft(&caller);
@@ -187,6 +187,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
             &attributes,            // Non formalized attributes
             &uris,                  // uris
         );
+        self.nft_prices(&caller).push(&price);
     }
 
     ////////////////
@@ -203,7 +204,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
     }
 
     ////////////////
-    // Create Campaign
+    // Send Campaign Tokens
     #[endpoint(sendCampaignTokens)]
     fn send_campaign_tokens(
         &self,
@@ -240,9 +241,19 @@ pub trait InnerCircles: crate::storage::StorageModule {
         }
     }
 
+    ////////////////
+    // Get NFT price
+    #[endpoint(getNftPrice)]
+    fn get_nft_price(
+        &self,
+        address: &ManagedAddress,
+        idx: usize,
+    ) -> BigUint {
+        self.nft_prices(&address).get(idx)
+    }    
 
-
-
+    ////////////////
+    // Clear storages
     #[only_owner]
     #[endpoint(clearToken)]
     fn clear_token(&self, address: &ManagedAddress) {
@@ -259,5 +270,11 @@ pub trait InnerCircles: crate::storage::StorageModule {
     #[endpoint(clearCampaign)]
     fn clear_campaign(&self, address: &ManagedAddress) {
         self.campaigns(address).clear();
+    }
+
+    #[only_owner]
+    #[endpoint(clearNftPrices)]
+    fn clear_nft_prices(&self, address: &ManagedAddress) {
+        self.nft_prices(address).clear();
     }
 }

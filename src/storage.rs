@@ -21,4 +21,8 @@ pub trait StorageModule {
     #[view(getCampaigns)]
     #[storage_mapper("campaigns")]
     fn campaigns(&self, user: &ManagedAddress) -> SingleValueMapper<Campaign<Self::Api>>;
+
+    #[view(getNftPrices)]
+    #[storage_mapper("nftPrices")]
+    fn nft_prices(&self, user: &ManagedAddress) -> VecMapper<BigUint>;
 }

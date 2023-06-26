@@ -104,7 +104,7 @@ createCampaign() {
     --arguments "str:"$CAMPAIGN_NAME "str:"$HASHTAG $AMOUNT   
 }
 
-NR_1=1
+NR_1=1000000
 NR_2=2
 NR_3=3
 HASHTAG=carlasdreams

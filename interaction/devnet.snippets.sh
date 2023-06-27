@@ -152,6 +152,24 @@ getNftPrices() {
     --arguments ${ALICE_ADDRESS_HEXX}
     }   
 
+IDX=3
+getNftPrice() {
+    mxpy --verbose contract query ${CONTRACT_ADDRESS} \
+    --proxy=${PROXY} \
+    --function="getNftPrice" \
+    --arguments ${ALICE_ADDRESS_HEXX} ${IDX}
+    }   
+
+NFT=CARLA-8ba918
+getPaymentToken() {
+    mxpy --verbose contract query ${CONTRACT_ADDRESS} \
+    --proxy=${PROXY} \
+    --function="getPaymentToken" \
+    --arguments "str:"${NFT}  
+    }   
+
+
+
 ######## CLEAR
 
 clearToken() {

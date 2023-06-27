@@ -245,12 +245,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
 
     ////////////////
     // Get NFT price
-    #[endpoint(getNftPrice)]
-    fn get_nft_price(
-        &self,
-        address: &ManagedAddress,
-        idx: usize,
-    ) -> BigUint {
+    #[view(getNftPrice)]
+    fn get_nft_price(&self, address: &ManagedAddress, idx: usize) -> BigUint {
         self.nft_prices(&address).get(idx)
     }    
 

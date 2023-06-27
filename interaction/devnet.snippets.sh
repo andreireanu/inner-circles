@@ -75,6 +75,7 @@ NFT_NAME="Campaign1"
 URI="ipfs://bafybeihbh6yup53quguma2qze3o7v6m6cef3cvu3qlap3jvc5lzymnmo7i"
 NFTS_NR=10
 ATTR="Band:Best"
+PRICE=100
 
 createNft() {
     mxpy --verbose contract call ${CONTRACT_ADDRESS} \
@@ -85,7 +86,7 @@ createNft() {
     --pem="inner-circles/wallets/alice.pem" \
     --gas-limit=5500000 \
     --function="createNft" \
-    --arguments "str:"$NFT_NAME $NFTS_NR "str:"$URI "str:"$ATTR 
+    --arguments "str:"$NFT_NAME $NFTS_NR "str:"$URI "str:"$ATTR $PRICE
 } 
 
 CAMPAIGN_NAME="TestCampaign"
@@ -144,6 +145,15 @@ getCampaigns() {
     --arguments ${ALICE_ADDRESS_HEXX}
     }   
 
+getNftPrices() {
+    mxpy --verbose contract query ${CONTRACT_ADDRESS} \
+    --proxy=${PROXY} \
+    --function="getNftPrices" \
+    --arguments ${ALICE_ADDRESS_HEXX}
+    }   
+
+######## CLEAR
+
 clearToken() {
     mxpy --verbose contract call ${CONTRACT_ADDRESS} \
     --send \
@@ -166,6 +176,20 @@ clearNft() {
     --gas-limit=6000000 \
     --function="clearNft" \
     --arguments ${ALICE_ADDRESS_HEXX}
+} 
+
+TOKEN=
+
+clearPaymentToken() {
+    mxpy --verbose contract call ${CONTRACT_ADDRESS} \
+    --send \
+    --proxy=${PROXY} \
+    --chain=${CHAIN_ID} \
+    --recall-nonce \
+    --pem="inner-circles/wallets/alice.pem" \
+    --gas-limit=6000000 \
+    --function="clearPaymentToken" \
+    --arguments "str:"$TOKEN
 } 
 
 clearCampaign() {

@@ -18,6 +18,10 @@ pub trait StorageModule {
     #[storage_mapper("creatorNft")]
     fn creator_nft(&self, user: &ManagedAddress) -> SingleValueMapper<TokenIdentifier>;
 
+    #[view(getPaymentToken)]
+    #[storage_mapper("paymentToken")]
+    fn payment_token(&self, token: &TokenIdentifier) -> SingleValueMapper<TokenIdentifier>;
+
     #[view(getCampaigns)]
     #[storage_mapper("campaigns")]
     fn campaigns(&self, user: &ManagedAddress) -> SingleValueMapper<Campaign<Self::Api>>;

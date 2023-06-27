@@ -5,9 +5,9 @@
 ////////////////////////////////////////////////////
 
 // Init:                                 1
-// Endpoints:                           15
+// Endpoints:                           17
 // Async Callback:                       1
-// Total number of exported functions:  17
+// Total number of exported functions:  19
 
 #![no_std]
 #![feature(alloc_error_handler, lang_items)]
@@ -29,8 +29,10 @@ multiversx_sc_wasm_adapter::endpoints! {
         clearNft
         clearCampaign
         clearNftPrices
+        clearPaymentToken
         getCreatorToken
         getCreatorNft
+        getPaymentToken
         getCampaigns
         getNftPrices
         callBack

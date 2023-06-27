@@ -115,6 +115,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
         match result {
             ManagedAsyncCallResult::Ok(token_identifier) => {
                 self.creator_nft(caller).set(&token_identifier);
+                let payment_tkn = self.creator_token(&caller).get();
+                self.payment_token(&token_identifier).set(&payment_tkn);
                 self.set_local_roles(&token_identifier);
             }
             ManagedAsyncCallResult::Err(_message) => {
@@ -276,5 +278,11 @@ pub trait InnerCircles: crate::storage::StorageModule {
     #[endpoint(clearNftPrices)]
     fn clear_nft_prices(&self, address: &ManagedAddress) {
         self.nft_prices(address).clear();
+    }
+
+    #[only_owner]
+    #[endpoint(clearPaymentToken)]
+    fn clear_payment_token(&self, token: &TokenIdentifier) {
+        self.payment_token(token).clear();
     }
 }

@@ -22,11 +22,11 @@ pub trait StorageModule {
     #[storage_mapper("paymentToken")]
     fn payment_token(&self, token: &TokenIdentifier) -> SingleValueMapper<TokenIdentifier>;
 
+    #[view(getNftPrices)]
+    #[storage_mapper("nftPrices")]
+    fn nft_prices(&self, token: &TokenIdentifier) -> VecMapper<BigUint>;
+
     #[view(getCampaigns)]
     #[storage_mapper("campaigns")]
     fn campaigns(&self, user: &ManagedAddress) -> SingleValueMapper<Campaign<Self::Api>>;
-
-    #[view(getNftPrices)]
-    #[storage_mapper("nftPrices")]
-    fn nft_prices(&self, user: &ManagedAddress) -> VecMapper<BigUint>;
 }

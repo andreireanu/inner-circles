@@ -4,7 +4,7 @@ PROXY=https://devnet-gateway.multiversx.com
 CHAIN_ID="D"
 WALLET_ALICE="${PWD}/inner-circles/wallets/alice.pem"
 WALLET_BOB="${PWD}/inner-circles/wallets/bob.pem"
-CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgqhd04r68jt00420qpzfep5wcy65kmx78c7wpqgts8yh"
+CONTRACT_ADDRESS="erd1qqqqqqqqqqqqqpgq5vdj5zavdgxzaxew4fh79xujpn3wsue07wpq79quvs"
 ALICE_ADDRESS="erd1aqd2v3hsrpgpcscls6a6al35uc3vqjjmskj6vnvl0k93e73x7wpqtpctqw"
 ALICE_ADDRESS_HEX="$(mxpy wallet bech32 --decode ${ALICE_ADDRESS})"
 ALICE_ADDRESS_HEXX="0x$(mxpy wallet bech32 --decode ${ALICE_ADDRESS})"
@@ -145,22 +145,25 @@ getCampaigns() {
     --arguments ${ALICE_ADDRESS_HEXX}
     }   
 
+NFT=CARLA-8ba918
+IDX=3
+
 getNftPrices() {
     mxpy --verbose contract query ${CONTRACT_ADDRESS} \
     --proxy=${PROXY} \
     --function="getNftPrices" \
-    --arguments ${ALICE_ADDRESS_HEXX}
+    --arguments ${NFT}
     }   
 
-IDX=3
+
 getNftPrice() {
     mxpy --verbose contract query ${CONTRACT_ADDRESS} \
     --proxy=${PROXY} \
     --function="getNftPrice" \
-    --arguments ${ALICE_ADDRESS_HEXX} ${IDX}
+    --arguments ${NFT} ${IDX}
     }   
 
-NFT=CARLA-8ba918
+
 getPaymentToken() {
     mxpy --verbose contract query ${CONTRACT_ADDRESS} \
     --proxy=${PROXY} \

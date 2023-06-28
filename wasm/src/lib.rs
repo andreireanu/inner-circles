@@ -33,8 +33,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         getCreatorToken
         getCreatorNft
         getPaymentToken
-        getCampaigns
         getNftPrices
+        getCampaigns
         callBack
     )
 }

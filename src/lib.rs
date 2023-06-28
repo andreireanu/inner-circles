@@ -189,7 +189,7 @@ pub trait InnerCircles: crate::storage::StorageModule {
             &attributes,            // Non formalized attributes
             &uris,                  // uris
         );
-        self.nft_prices(&caller).push(&price);
+        self.nft_prices(&user_nft_mapper.get()).push(&price);
     }
 
     ////////////////
@@ -246,8 +246,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
     ////////////////
     // Get NFT price
     #[view(getNftPrice)]
-    fn get_nft_price(&self, address: &ManagedAddress, idx: usize) -> BigUint {
-        self.nft_prices(&address).get(idx)
+    fn get_nft_price(&self, token: &TokenIdentifier, idx: usize) -> BigUint {
+        self.nft_prices(token).get(idx)
     }    
 
     ////////////////
@@ -272,8 +272,8 @@ pub trait InnerCircles: crate::storage::StorageModule {
 
     #[only_owner]
     #[endpoint(clearNftPrices)]
-    fn clear_nft_prices(&self, address: &ManagedAddress) {
-        self.nft_prices(address).clear();
+    fn clear_nft_prices(&self, token: &TokenIdentifier) {
+        self.nft_prices(token).clear();
     }
 
     #[only_owner]

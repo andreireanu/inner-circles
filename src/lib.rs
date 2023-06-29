@@ -243,6 +243,32 @@ pub trait InnerCircles: crate::storage::StorageModule {
         }
     }
 
+
+    ////////////////
+    // Buy
+    #[endpoint(buyNft)]
+    #[payable("*")]
+    fn buy_nft(&self, nft_token: &TokenIdentifier, nft_token_nonce: u64) {
+        let payment = self.call_value().single_esdt();
+        let needed_payment_token = self.payment_token(&nft_token).get();
+        require!(
+            &needed_payment_token == &payment.token_identifier,
+            "You tried to buy the NFT with the wrong error"
+        );
+        let nft_price = self.get_nft_price(&nft_token, nft_token_nonce.clone() as usize);
+        require!(&payment.amount == &nft_price, "Payment amount incorrect");
+
+        self.send().esdt_local_burn(
+            &payment.token_identifier,
+            payment.token_nonce,
+            &payment.amount,
+        );
+
+        let caller = self.blockchain().get_caller();
+        self.send()
+            .direct_esdt(&caller, &nft_token, nft_token_nonce, &BigUint::from(1u64));
+    }
+
     ////////////////
     // Get NFT price
     #[view(getNftPrice)]
